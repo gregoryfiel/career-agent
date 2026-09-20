@@ -1,0 +1,29 @@
+# ─── Personal data — never commit ──────────────────────────────────────────
+profile/*
+!profile/_example/
+!profile/.gitkeep
+
+applications/
+output/
+*.pdf
+*.docx
+!templates/**/*.docx
+
+# Inbox sweeps, transcripts, anything derived from private accounts
+**/inbox-sweep-*.md
+**/transcripts/
+*.opus
+*.m4a
+*.mp3
+*.wav
+
+# ─── Toolchain ─────────────────────────────────────────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+.env
+.env.*

@@ -1,0 +1,67 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  evidence-gate:
+    name: anti-fabrication gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Example evidence bank parses
+        run: python3 tools/verify_evidence.py --profile profile/_example --self-test
+
+      - name: Gate catches a fabricated claim
+        run: |
+          cat > /tmp/fabricated.md <<'MD'
+          Campanhas em Google Ads e automação com RD Station.
+          MD
+          if python3 tools/verify_evidence.py --profile profile/_example --cv /tmp/fabricated.md; then
+            echo "::error::gate did not catch a fabricated claim"
+            exit 1
+          fi
+          echo "✓ gate correctly rejected the fabricated claim"
+
+      - name: Gate passes a clean claim
+        run: |
+          cat > /tmp/clean.md <<'MD'
+          Campanhas em Meta Ads e relatórios mensais em GA4.
+          MD
+          python3 tools/verify_evidence.py --profile profile/_example --cv /tmp/clean.md
+
+  structure:
+    name: repository structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required files exist
+        run: |
+          fail=0
+          for f in AGENTS.md AGENTS.pt-BR.md CLAUDE.md README.md README.pt-BR.md LICENSE \
+                   tools/verify_evidence.py tools/check_pages.sh tools/transcribe_audio.py; do
+            [ -f "$f" ] || { echo "::error::missing $f"; fail=1; }
+          done
+          for d in 00-onboarding 01-job-radar 02-ats-triage 03-tailored-cv \
+                   04-application-tracker 05-inbox-sweep 06-interview-prep \
+                   07-audio-interview 08-salary-research; do
+            [ -f "skills/$d/SKILL.md" ] || { echo "::error::missing skills/$d/SKILL.md"; fail=1; }
+          done
+          exit $fail
+
+      - name: No personal data committed
+        run: |
+          leaked=$(git ls-files 'profile/*' | grep -v '^profile/_example/' | grep -v '^profile/.gitkeep$' || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::personal profile data is tracked by git:"
+            echo "$leaked"
+            exit 1
+          fi
+          echo "✓ no personal profile data tracked"

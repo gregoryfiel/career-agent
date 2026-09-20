@@ -1,0 +1,14 @@
+{
+  "name": "career-agent-cv",
+  "version": "1.0.0",
+  "description": "ATS-safe CV generator for career-agent",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "node build.js",
+    "build:ats": "ATS_SAFE=1 node build.js"
+  },
+  "dependencies": {
+    "docx": "^8.5.0"
+  }
+}
