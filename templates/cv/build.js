@@ -1,115 +1,233 @@
 /**
- * build.js — renders a CV data file to .docx (and .md).
+ * build.js — renders a CV data file to .docx.
  *
- *   CV_DATA=./cv_acme.js node build.js           # styled
- *   CV_DATA=./cv_acme.js ATS_SAFE=1 node build.js # ATS-safe: no tables, no columns, no icons
+ *   CV_DATA=./cv_acme.js node build.js            # styled (the house template)
+ *   CV_DATA=./cv_acme.js ATS_SAFE=1 node build.js # ATS-safe: Arial, no colour, no borders
  *
- * ATS-safe mode exists because some parsers mangle multi-column layouts and drop text inside
- * table cells. When in doubt about the employer's parser, send the ATS-safe file.
+ * ── Provenance ───────────────────────────────────────────────────────────────
+ * The styled layout is not invented. It was recovered from the OOXML of CVs this
+ * template actually produced, so every measurement below is the real one:
+ *
+ *   page          Letter (12240 × 15840 twips), margins 648 vertical / 792 horizontal
+ *   body font     Calibri 9.5pt (sz 19 half-points)
+ *   accent        #1F3864
+ *   name          bold, accent, 15pt, centred, 20 after
+ *   subtitle      #444444, 10pt, centred, 20 after
+ *   contact       #333333, 9pt, centred, 160 after, links #0563C1 underlined, "  |  " separator
+ *   heading       bold accent 10pt UPPERCASE, bottom rule (single, accent, sz 6, space 2),
+ *                 160 before / 64 after
+ *   summary       9.5pt, justified, 60 after
+ *   skill label   bold accent 9pt, own paragraph
+ *   skill value   9pt, own paragraph
+ *   role title    bold 10pt, 118 before / 8 after
+ *   role meta     italic #595959 8.5pt, 55 after
+ *   bullet        9.5pt, numbered list, 30 after
+ *   tech line     bold italic #444444 8.5pt, 40 before / 20 after
+ *   education     9.5pt, 35 after
+ *
+ * ── Fixed vs the original ────────────────────────────────────────────────────
+ * The original applied the **bold** parser only to summary, experience bullets and
+ * education — so `**Databricks Asset Bundles**` shipped with literal asterisks inside
+ * the skills section of at least one real CV. Here every text field goes through the
+ * same parser.
  */
 const fs = require('fs');
 const path = require('path');
-const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = require('docx');
+const {
+  Document, Packer, Paragraph, TextRun, ExternalHyperlink,
+  AlignmentType, BorderStyle, LevelFormat, convertInchesToTwip,
+} = require('docx');
 
 const DATA = process.env.CV_DATA || './cv.example.js';
 const ATS = !!process.env.ATS_SAFE;
 const S = require(path.resolve(DATA));
 const L = S.labels || {};
 
-/** Split **bold** markers into docx runs. */
+// ── Design tokens (recovered) ────────────────────────────────────────────────
+const FONT = ATS ? 'Arial' : 'Calibri';
+const ACCENT = ATS ? '000000' : '1F3864';
+const MUTED = ATS ? '000000' : '444444';
+const META = ATS ? '000000' : '595959';
+const CONTACT = ATS ? '000000' : '333333';
+const LINK = ATS ? '000000' : '0563C1';
+
+const SZ = { name: 30, subtitle: 20, contact: 18, heading: 20, body: 19, skill: 18, role: 20, meta: 17, tech: 17 };
+
+/** Split **bold** markers into runs. Applied to every text field — see header note. */
 const runs = (text, base = {}) =>
-  String(text).split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? new TextRun({ ...base, text: part.slice(2, -2), bold: true })
-      : new TextRun({ ...base, text: part })
-  );
+  String(text ?? '')
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter(Boolean)
+    .map((part) =>
+      part.startsWith('**') && part.endsWith('**')
+        ? new TextRun({ font: FONT, ...base, text: part.slice(2, -2), bold: true })
+        : new TextRun({ font: FONT, ...base, text: part })
+    );
 
 const heading = (text) =>
   new Paragraph({
-    heading: HeadingLevel.HEADING_2,
-    spacing: { before: 260, after: 110 },
-    border: ATS ? undefined : { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC' } },
-    children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 22, color: ATS ? '000000' : '1F3A5F' })],
+    spacing: { before: 160, after: 64 },
+    border: ATS ? undefined : { bottom: { style: BorderStyle.SINGLE, color: ACCENT, size: 6, space: 2 } },
+    children: [new TextRun({
+      font: FONT, text: String(text).toUpperCase(), bold: true, color: ACCENT, size: SZ.heading,
+    })],
   });
 
 const body = [];
 
-// Header — contact details as literal text so an ATS can read them.
+// ── Header ───────────────────────────────────────────────────────────────────
 body.push(new Paragraph({
+  spacing: { after: 20 },
   alignment: ATS ? AlignmentType.LEFT : AlignmentType.CENTER,
-  spacing: { after: 60 },
-  children: [new TextRun({ text: S.name, bold: true, size: 34 })],
-}));
-if (S.subtitle) body.push(new Paragraph({
-  alignment: ATS ? AlignmentType.LEFT : AlignmentType.CENTER,
-  spacing: { after: 90 },
-  children: [new TextRun({ text: S.subtitle, size: 21, color: ATS ? '000000' : '444444' })],
-}));
-body.push(new Paragraph({
-  alignment: ATS ? AlignmentType.LEFT : AlignmentType.CENTER,
-  spacing: { after: 180 },
-  children: [new TextRun({
-    text: [S.email, S.phone, S.location, ...(S.links || []).map((l) => l.label)].filter(Boolean).join(' | '),
-    size: 19,
-  })],
+  children: [new TextRun({ font: FONT, text: S.name, bold: true, color: ACCENT, size: SZ.name })],
 }));
 
-if (S.summary) {
-  body.push(heading(L.summary || 'Summary'));
-  body.push(new Paragraph({ spacing: { after: 120 }, children: runs(S.summary, { size: 20 }) }));
+if (S.subtitle) {
+  body.push(new Paragraph({
+    spacing: { after: 20 },
+    alignment: ATS ? AlignmentType.LEFT : AlignmentType.CENTER,
+    children: [new TextRun({ font: FONT, text: S.subtitle, color: MUTED, size: SZ.subtitle })],
+  }));
 }
 
+// Contact line — plain text so an ATS can read it, links only in the styled variant.
+{
+  const sep = '  |  ';
+  const plain = (t) => new TextRun({ font: FONT, text: t, color: CONTACT, size: SZ.contact });
+  const kids = [];
+  const push = (node) => { if (kids.length) kids.push(plain(sep)); kids.push(node); };
+
+  if (S.email) push(plain(S.email));
+  for (const l of S.links || []) {
+    push(ATS
+      ? plain(l.label)
+      : new ExternalHyperlink({
+          link: l.url,
+          children: [new TextRun({
+            font: FONT, text: l.label, color: LINK, size: SZ.contact, underline: {},
+          })],
+        }));
+  }
+  if (S.phone) push(plain(S.phone));
+  if (S.location) push(plain(S.location));
+
+  body.push(new Paragraph({
+    spacing: { after: 160 },
+    alignment: ATS ? AlignmentType.LEFT : AlignmentType.CENTER,
+    children: kids,
+  }));
+}
+
+// ── Summary ──────────────────────────────────────────────────────────────────
+if (S.summary) {
+  body.push(heading(L.sum || L.summary || 'Resumo Profissional'));
+  body.push(new Paragraph({
+    spacing: { after: 60 },
+    alignment: ATS ? AlignmentType.LEFT : AlignmentType.JUSTIFIED,
+    children: runs(S.summary, { size: SZ.body }),
+  }));
+}
+
+// ── Skills — label and value are separate paragraphs ─────────────────────────
 if (S.skills?.length) {
-  body.push(heading(L.skills || 'Skills'));
+  body.push(heading(L.skills || 'Competências Técnicas'));
   for (const s of S.skills) {
     body.push(new Paragraph({
-      spacing: { after: 70 },
-      children: [new TextRun({ text: `${s.label}: `, bold: true, size: 20 }), ...runs(s.value, { size: 20 })],
+      children: [new TextRun({ font: FONT, text: s.label, bold: true, color: ACCENT, size: SZ.skill })],
     }));
+    body.push(new Paragraph({ children: runs(s.value, { size: SZ.skill }) }));
   }
 }
 
+// ── Experience ───────────────────────────────────────────────────────────────
 if (S.experience?.length) {
-  body.push(heading(L.experience || 'Experience'));
+  body.push(heading(L.exp || L.experience || 'Experiência Profissional'));
   for (const e of S.experience) {
     body.push(new Paragraph({
-      spacing: { before: 130, after: 20 },
-      children: [new TextRun({ text: `${e.title} | ${e.company}`, bold: true, size: 21 })],
+      spacing: { before: 118, after: 8 },
+      children: [new TextRun({
+        font: FONT, text: [e.title, e.company].filter(Boolean).join(' | '), bold: true, size: SZ.role,
+      })],
     }));
-    if (e.meta) body.push(new Paragraph({
-      spacing: { after: 70 },
-      children: [new TextRun({ text: e.meta, italics: true, size: 19, color: ATS ? '000000' : '555555' })],
-    }));
-    for (const b of e.bullets || []) {
-      body.push(new Paragraph({ bullet: { level: 0 }, spacing: { after: 50 }, children: runs(b, { size: 20 }) }));
+    if (e.meta) {
+      body.push(new Paragraph({
+        spacing: { after: 55 },
+        children: [new TextRun({ font: FONT, text: e.meta, italics: true, color: META, size: SZ.meta })],
+      }));
     }
-    if (e.tech) body.push(new Paragraph({
-      spacing: { after: 70 },
-      children: [new TextRun({ text: (L.tech || 'Tech: ') + e.tech, italics: true, size: 18 })],
+    for (const b of e.bullets || []) {
+      body.push(new Paragraph({
+        numbering: { reference: 'cv-bullets', level: 0 },
+        spacing: { after: 30 },
+        children: runs(b, { size: SZ.body }),
+      }));
+    }
+    if (e.tech) {
+      body.push(new Paragraph({
+        spacing: { before: 40, after: 20 },
+        children: [new TextRun({
+          font: FONT, text: (L.tech || 'Tecnologias: ') + e.tech,
+          bold: true, italics: true, color: MUTED, size: SZ.tech,
+        })],
+      }));
+    }
+  }
+}
+
+// ── Education (plain paragraphs) and certifications (bulleted) ───────────────
+if (S.education?.length) {
+  body.push(heading(L.edu || L.education || 'Formação'));
+  for (const item of S.education) {
+    body.push(new Paragraph({ spacing: { after: 35 }, children: runs(item, { size: SZ.body }) }));
+  }
+}
+
+const tail = [...(S.certifications || [])];
+if (S.languages) tail.push(S.languages);
+if (tail.length) {
+  body.push(heading(L.cert || L.certifications || 'Certificações e Idiomas'));
+  for (const item of tail) {
+    body.push(new Paragraph({
+      numbering: { reference: 'cv-bullets', level: 0 },
+      spacing: { after: 35 },
+      children: runs(item, { size: SZ.body }),
     }));
   }
 }
 
-for (const [key, label] of [['education', L.education || 'Education'], ['certifications', L.certifications || 'Certifications']]) {
-  if (!S[key]?.length) continue;
-  body.push(heading(label));
-  for (const item of S[key]) {
-    body.push(new Paragraph({ spacing: { after: 60 }, children: runs(item, { size: 20 }) }));
-  }
-}
-
+// ── Document ─────────────────────────────────────────────────────────────────
 const doc = new Document({
   creator: S.name,
-  styles: { default: { document: { run: { font: ATS ? 'Arial' : 'Calibri', size: 20 } } } },
-  sections: [{ properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } }, children: body }],
+  styles: { default: { document: { run: { font: FONT, size: SZ.body } } } },
+  numbering: {
+    config: [{
+      reference: 'cv-bullets',
+      levels: [{
+        level: 0,
+        format: LevelFormat.BULLET,
+        text: '•',
+        alignment: AlignmentType.LEFT,
+        style: { paragraph: { indent: { left: convertInchesToTwip(0.25), hanging: convertInchesToTwip(0.16) } } },
+      }],
+    }],
+  },
+  sections: [{
+    properties: {
+      page: {
+        size: { width: 12240, height: 15840 },
+        margin: { top: 648, bottom: 648, left: 792, right: 792 },
+      },
+    },
+    children: body,
+  }],
 });
 
-const slug = (S.name || 'cv').replace(/\s+/g, '_');
+const slug = (S.outputName || S.name || 'cv').replace(/\s+/g, '_');
 const out = `CV_${slug}${ATS ? '_ATS_SAFE' : ''}.docx`;
 
 Packer.toBuffer(doc).then((buf) => {
   fs.writeFileSync(out, buf);
   console.log(`✓ ${out}`);
-  console.log('  next: bash ../../tools/check_pages.sh ' + out + ' 2');
-  console.log('        python3 ../../tools/verify_evidence.py --cv <md> --profile ../../profile/<person>');
+  console.log(`  verify: bash ../../tools/check_pages.sh ${out} 2`);
+  console.log('          python3 ../../tools/verify_evidence.py --cv <md> --profile ../../profile/<person>');
 });

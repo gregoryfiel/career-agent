@@ -7,7 +7,12 @@ applications/
 output/
 *.pdf
 *.docx
-!templates/**/*.docx
+
+# CVs generated while testing the template — never commit a real one
+CV_*.docx
+CV_*.pdf
+templates/cv/cv_*.js
+!templates/cv/cv.example.js
 
 # Inbox sweeps, transcripts, anything derived from private accounts
 **/inbox-sweep-*.md
