@@ -17,7 +17,7 @@ Before writing a word, build the table. It is the contract for the whole documen
 
 | Requirement (their words) | Evidence | Verdict |
 |---|---|---|
-| Azure Databricks | 4 yrs, ilegra + NTT DATA | ✅ strong |
+| Azure Databricks | 3 yrs, two consulting clients | ✅ strong |
 | PySpark, production pipelines | terabyte-scale ETL, ~1 TB fact | ✅ strong |
 | CDC / change data capture | MERGE, SCD2, DLT incremental, time travel | ⚠️ partial — no Change Data Feed, no Debezium |
 | SSIS | — | ❌ none |
@@ -32,7 +32,7 @@ have it. Still want the CV?"*
 
 Lead with what the posting leads with. If they open on migration, the summary opens on migration.
 
-- **Verbs, not nouns.** "Migrated 1,677 tables" beats "responsible for migration."
+- **Verbs, not nouns.** "Migrated 1,200 tables" beats "responsible for migration."
 - **Numbers from the evidence bank only**, exactly as recorded.
 - **Mirror their vocabulary** where the evidence supports it. They say "lakehouse", the CV says
   lakehouse — but only if the person has actually built one.
@@ -53,18 +53,27 @@ the evidence bank, and ask for:
 
 Then revise. The two-pass split catches things a single pass rereading its own work does not.
 
-## Phase 4 — Verify (all four gates must pass)
+## Phase 4 — Verify (all five gates must pass)
 
 ```bash
-python3 tools/verify_evidence.py --cv output/<file>.md --profile profile/<person>
-bash tools/check_pages.sh output/<file>.pdf 2      # page ceiling
+cd templates/cv
+CV_DATA=./cv_<company>.js node build.js              # writes output/<name>/ .docx + .pdf, runs the lint
+CV_DATA=./cv_<company>.js ATS_SAFE=1 node build.js
+cd ../..
+python3 tools/verify_evidence.py --profile profile/<person> \
+    --cv templates/cv/cv_<company>.js --cv output/<name>/CV_<name>.docx
+bash tools/check_pages.sh output/<name>/CV_<name>.pdf 2      # page ceiling
 ```
 
-1. **Evidence gate** — exits 0. No unbacked technology anywhere in the document.
+1. **Evidence gate** — exits 0 on the file that will actually be sent, not on a draft of it. No
+   unbacked technology anywhere in the document.
 2. **Page count** — within the ceiling (2 pages is the default; some markets differ).
 3. **ATS text layer** — extract the PDF's text and read it as a parser would. Contact details must
    be literal text, not icon glyphs. Reading order must make sense. No garbled fonts.
 4. **Numbers match the evidence bank exactly.** Not approximately.
+5. **The build printed no lint warning.** The lint compares every "N years of X" claim with the
+   dated roles on the same CV. "Four of them on Databricks" with Databricks starting in August 2023
+   is a claim a recruiter disproves by subtraction. Fix the sentence, not the dates.
 
 ## Phase 5 — Trimming, when over the page ceiling
 
@@ -81,10 +90,11 @@ plan to tell as a story in the interview stays.
 ## Output
 
 ```
-output/<Company>_<Role>/
-  CV_<Person>_<Company>_<Role>.docx
-  CV_<Person>_<Company>_<Role>.pdf
-  CV_<Person>_<Company>_<Role>_ATS_SAFE.docx   # no tables, no columns, no icons
+output/<outputName>/                            # gitignored — build.js writes here
+  CV_<outputName>.docx
+  CV_<outputName>.pdf                           # when LibreOffice is installed
+  CV_<outputName>_ATS_SAFE.docx                 # no colour, no borders, left-aligned
+  CV_<outputName>_ATS_SAFE.pdf
   requirement-map.md                            # phase 1 table — skill 06 reads this
 ```
 

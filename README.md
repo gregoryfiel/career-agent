@@ -13,7 +13,7 @@
 locked evidence bank, and hand back the exact posting on the day of the interview.*
 
 [What makes it different](#what-makes-it-different) · [Install](#install) · [The loop](#the-loop) ·
-[Skills](#the-nine-skills) · [Privacy](#privacy)
+[Skills](#the-ten-skills) · [Privacy](#privacy)
 
 </div>
 
@@ -112,24 +112,26 @@ depends on it.
                                   06 interview prep ──────┘
                                   07 audio prep
                                   08 salary research
+                                  09 application form
 ```
 
 The arrow that matters most is the one going back into the evidence bank. Every interview surfaces
 something you had forgotten you did.
 
-## The nine skills
+## The ten skills
 
 | # | Skill | What it does |
 |---|---|---|
 | `00` | **onboarding** | Builds the evidence bank from your CV, LinkedIn or a guided conversation. Marks gaps rather than filling them. |
 | `01` | **job-radar** | Finds open roles across job boards and LinkedIn, scores fit against your profile, filters by your seniority band. |
 | `02` | **ats-triage** | ⭐ Resolves the application link to its ATS **before** CV work starts. Flags platforms on your do-not-use list. |
-| `03` | **tailored-cv** | Drafter writes, a fresh reviewer critiques with company research, then verification: evidence gate, page count, ATS text layer. |
+| `03` | **tailored-cv** | Drafter writes, a fresh reviewer critiques with company research, then verification: evidence gate on the real .docx/.pdf, tenure lint, page count, ATS text layer. |
 | `04` | **application-tracker** | One row per application, one folder per company — CV sent, posting archived, status, salary quoted. |
 | `05` | **inbox-sweep** | Sweeps every inbox you actually use, because confirmations do not all land in the same one. |
 | `06` | **interview-prep** | ⭐ Re-serves the archived posting. Builds HR and technical prep, maps your stories, writes honest bridge answers. |
 | `07` | **audio-interview** | ⭐ Transcribes practice recordings locally. Measures pace, tics, ownership language. Rebuilds answers as Context → Action → Result. |
 | `08` | **salary-research** | ⭐ Per-company compensation data, employment-type conversion, FX exposure, and the negotiation script. |
+| `09` | **application-form** | ⭐ Reads the real form, flags the fields only you can fill, respects every character limit, keeps salary and years consistent with the CV. You click submit. |
 
 ⭐ = not found in any comparable project. Each one came from a specific failure.
 

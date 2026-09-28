@@ -36,8 +36,8 @@ For every technology, tool, method or domain the person claims, record **where i
 ```markdown
 | Item | Level | Where it happened | Proof |
 |---|---|---|---|
-| PySpark | advanced · 4 yrs | ilegra (TK Elevator), NTT DATA (AB InBev) | terabyte-scale ETL, ~1 TB fact table |
-| Unity Catalog | advanced | NTT DATA — provisioned as code across SIT/UAT/PROD | 1,677-table cross-tenant migration |
+| PySpark | advanced · 3 yrs | Northwind Consulting (logistics client), 2023–now | terabyte-scale ETL, ~1 TB fact table |
+| Unity Catalog | advanced | Northwind — provisioned as code across SIT/UAT/PROD | 1,200-table cross-tenant migration |
 | Kafka | ❌ none | — | do not claim |
 ```
 
@@ -47,7 +47,7 @@ Rules:
   wish. Put it in the `❌ none` block.
 - **Record the absences too.** An explicit "does not have Kafka" is more useful than silence,
   because it stops a future agent from inferring it.
-- **Numbers get a source.** "1,677 tables" is evidence. "Thousands of tables" is not. If the person
+- **Numbers get a source.** "1,200 tables" is evidence. "Thousands of tables" is not. If the person
   is unsure of a figure, write `⚠️ to confirm` next to it and make them settle it before it reaches
   a CV — a number that varies between the CV and the interview destroys credibility.
 - **Ask about the unglamorous.** The strongest interview stories are usually the ones people do not

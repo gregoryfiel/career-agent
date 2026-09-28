@@ -31,9 +31,12 @@ or profile **if it is present in `profile/<person>/evidence.md`**.
 
 - No "adjacent" skills presented as owned. No inferring Kubernetes from Docker.
 - No rounding a number up. No inventing a percentage because the sentence reads better.
+- **Tenure is a number too.** "Four years of Databricks" must match the dated roles on the same CV.
+  `templates/cv/lint.js` checks every "N years of X" claim on each build.
 - When a posting requires something the person lacks, say so and write the honest bridge answer:
   *"I haven't used X. The closest thing I've done is Y."*
-- `tools/verify_evidence.py` enforces this. It runs in CI and it must stay green.
+- `tools/verify_evidence.py` enforces this **on the real deliverable** — the `.docx`, the `.pdf` or
+  the CV data file. It runs in CI and it must stay green.
 
 Fabrication does not fail at the CV stage. It fails in the technical interview, in front of a person
 who knows the difference — which is worse than never applying.
@@ -65,6 +68,19 @@ query. See [`docs/privacy.md`](docs/privacy.md).
 If a job could not be confirmed as open, if a salary range came from a single self-reported data
 point, if an ATS was not identified — say so, in that sentence, next to the claim. Never present an
 unverified thing in the same voice as a verified one.
+
+### 2.6 Never deny a gap — and never volunteer one
+
+Two different rules. Mixing them up costs interviews.
+
+- **When asked** about something the person lacks, answer honestly, with the bridge from §2.1. A
+  "yes" that is not true is fabrication, whatever the channel.
+- **When not asked**, do not raise it. A first message to a recruiter, a cover letter, a form's
+  free-text field — none of them is the place to list what the person cannot do. Lead with what the
+  evidence backs, and answer the gaps when someone actually asks.
+
+*"I haven't used Kafka — the streaming I've run is Delta Live Tables"* is the right answer to *"Do
+you know Kafka?"*. It is the wrong opening line to a recruiter who never mentioned Kafka.
 
 ## 3. Repository map
 
@@ -98,13 +114,18 @@ skills/
   06-interview-prep/   ⭐ re-serve the archived posting: HR + technical
   07-audio-interview/  ⭐ async audio screens (DigAI et al.)
   08-salary-research/  ⭐ per-company data, CLT↔PJ, FX exposure
+  09-application-form/ ⭐ the form, field by field — the person clicks submit
 
 templates/
-  cv/                  Node + docx generator, ATS-safe variant
+  cv/                  Node + docx generator, ATS-safe variant, PDF export
+    lint.js            tenure claims vs dated roles — runs on every build
   tracker/             applications.csv + tracker.md seed
 
+output/                ⚠️ gitignored — every generated CV lands here, never in templates/
+
 tools/
-  verify_evidence.py   ⭐ anti-fabrication gate (runs in CI)
+  verify_evidence.py   ⭐ anti-fabrication gate — reads .docx, .pdf, .js, .md (runs in CI)
+  test_verify_evidence.py  regression tests for the gate
   check_pages.sh       page-count enforcement via LibreOffice + pdfinfo
   transcribe_audio.py  local Whisper transcription for skill 07
 ```
@@ -128,6 +149,7 @@ tools/
                               06 interview prep ─────┘
                               07 audio prep
                               08 salary research
+                              09 application form
 ```
 
 The arrow that matters most is the one going back into `evidence.md`. Every interview surfaces
@@ -148,6 +170,13 @@ evidence bank is a fabrication waiting to happen.
 Seniority band, salary floor, contract type (CLT/PJ/contractor), relocation appetite and
 deal-breakers are the person's to decide. Never infer them from a CV.
 
+### Conflicts of interest
+A consultant's current client — or any client their employer serves — can surface in a job search
+as a perfect match, because it is their own job description. **Flag it; never drop it silently and
+never recommend it blindly.** Employment contracts often carry non-solicitation clauses, and applying
+can cost the current job. The person reads their contract; the agent names the clause to look for.
+Keep the list under `## Conflicts` in `profile/<person>/profile.md`.
+
 ### Cite what you read
 When a claim comes from a page, a posting, an email or a file, name the source inline. The person
 needs to be able to check you.
@@ -164,9 +193,10 @@ tell the user what is missing rather than failing silently.
 |---|---|---|
 | Web search + fetch | 01, 02, 06, 08 | ask the person to paste the posting text |
 | Indeed MCP connector | 01 | fall back to browser search |
-| Browser automation | 01, 02, 05, 08 | ask the person to paste page text |
+| Browser automation | 01, 02, 05, 08, 09 | ask the person to paste page text |
 | Gmail connector | 05 | ask the person to search their inbox manually |
 | Local shell + Python | 03, 07, tools | skill 07 is unavailable; 03 loses page verification |
+| LibreOffice (`soffice`) | 03 | no automatic PDF — export from Word; page check is manual |
 | Node 18+ | 03 | export markdown instead of docx |
 
 ## 7. Definition of done
@@ -174,7 +204,8 @@ tell the user what is missing rather than failing silently.
 A skill's run is finished when:
 
 1. Every factual claim traces to `evidence.md` or to a cited source.
-2. `tools/verify_evidence.py` exits 0 on any generated CV.
+2. `tools/verify_evidence.py` exits 0 on the generated `.docx` or `.pdf`, and the build printed no
+   lint warnings.
 3. Gaps are stated out loud, not hidden.
 4. The artefact is on disk, in the right folder, named for the company and role.
 5. The tracker row exists and the posting is archived.

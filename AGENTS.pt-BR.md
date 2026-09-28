@@ -30,9 +30,12 @@ entrevista ou perfil **se estiver em `profile/<pessoa>/evidence.md`**.
 
 - Nada de habilidade "adjacente" apresentada como domínio. Não se infere Kubernetes a partir de Docker.
 - Não arredonde número pra cima. Não invente percentual porque a frase fica melhor.
+- **Tempo de experiência também é número.** "Quatro anos de Databricks" tem que bater com as datas
+  das experiências no mesmo CV. O `templates/cv/lint.js` confere isso a cada build.
 - Quando a vaga pede algo que a pessoa não tem, diga isso e escreva a ponte honesta:
   *"Não usei X. O mais próximo que fiz foi Y."*
-- O `tools/verify_evidence.py` fiscaliza isso. Roda no CI e tem que ficar verde.
+- O `tools/verify_evidence.py` fiscaliza isso **no arquivo que vai de fato** — o `.docx`, o `.pdf` ou
+  o arquivo de dados do CV. Roda no CI e tem que ficar verde.
 
 Invenção não quebra na etapa do CV. Quebra na entrevista técnica, na frente de alguém que sabe a
 diferença — e isso é pior do que nunca ter se candidatado.
@@ -65,7 +68,20 @@ Se não deu pra confirmar que a vaga está aberta, se a faixa salarial veio de u
 ATS não foi identificado — diga, na mesma frase, do lado da afirmação. Nunca apresente o não
 verificado com o mesmo tom do verificado.
 
-## 3. As nove habilidades
+### 2.6 Nunca negue uma lacuna — e nunca ofereça uma
+
+São duas regras diferentes. Confundir as duas custa entrevista.
+
+- **Quando perguntarem** sobre algo que a pessoa não tem, responda com honestidade, com a ponte do
+  §2.1. Um "sim" que não é verdade é invenção, em qualquer canal.
+- **Quando ninguém perguntou**, não levante o assunto. Primeira mensagem para recrutador, carta de
+  apresentação, campo livre de formulário — nenhum deles é lugar de listar o que a pessoa não sabe.
+  Abra com o que a evidência sustenta e responda as lacunas quando alguém de fato perguntar.
+
+*"Kafka eu não usei — o streaming que operei foi Delta Live Tables"* é a resposta certa para *"Você
+conhece Kafka?"*. É a abertura errada para um recrutador que nunca falou de Kafka.
+
+## 3. As dez habilidades
 
 | # | Habilidade | O que faz |
 |---|---|---|
@@ -78,6 +94,7 @@ verificado com o mesmo tom do verificado.
 | 06 | **interview-prep** | ⭐ Devolve a vaga arquivada: preparo de RH e técnico |
 | 07 | **audio-interview** | ⭐ Triagem assíncrona por áudio (DigAI e similares) |
 | 08 | **salary-research** | ⭐ Dado por empresa, conta CLT↔PJ, exposição cambial |
+| 09 | **application-form** | ⭐ O formulário campo a campo — quem clica em enviar é a pessoa |
 
 As marcadas com ⭐ não existem em nenhum projeto parecido. Vieram de problemas reais.
 
@@ -93,13 +110,21 @@ banco de evidências é invenção esperando pra acontecer.
 **Pergunte em vez de supor.** Faixa de senioridade, piso salarial, regime de contratação (CLT/PJ),
 disposição para mudar de cidade e critérios eliminatórios são decisão da pessoa. Nunca deduza de CV.
 
+**Conflito de interesse.** O cliente atual de quem trabalha em consultoria — ou qualquer cliente
+que o empregador atende — pode aparecer na busca como a vaga perfeita, justamente porque é a
+descrição do trabalho que a pessoa já faz. **Sinalize; nunca descarte em silêncio nem recomende às
+cegas.** Contratos de trabalho costumam ter cláusula de não-solicitação, e se candidatar pode custar
+o emprego atual. Quem lê o contrato é a pessoa; o agente aponta qual cláusula procurar. A lista fica
+em `## Conflicts` no `profile/<pessoa>/profile.md`.
+
 **Cite o que você leu.** Quando a afirmação vem de uma página, vaga, e-mail ou arquivo, nomeie a
 fonte ali mesmo. A pessoa precisa conseguir te conferir.
 
 ## 5. Quando uma execução está pronta
 
 1. Toda afirmação factual rastreia até o `evidence.md` ou até uma fonte citada.
-2. O `tools/verify_evidence.py` sai com código 0 em qualquer CV gerado.
+2. O `tools/verify_evidence.py` sai com código 0 no `.docx` ou `.pdf` gerado, e o build não imprimiu
+   nenhum aviso de lint.
 3. As lacunas estão ditas em voz alta, não escondidas.
 4. O arquivo está em disco, na pasta certa, nomeado por empresa e cargo.
 5. A linha do tracker existe e a vaga está arquivada.

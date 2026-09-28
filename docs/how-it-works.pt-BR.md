@@ -28,6 +28,7 @@ num editor de texto, e ver a mudança num diff.
                                   06 preparo de entrevista┘
                                   07 preparo de áudio
                                   08 pesquisa salarial
+                                  09 formulário de candidatura
 ```
 
 ## Uma semana na prática

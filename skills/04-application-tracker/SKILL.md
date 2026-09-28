@@ -30,7 +30,11 @@ date_applied,company,role,job_id,link,ats,cv_file,status,salary_quoted,source,la
 ```
 
 **Status values:** `draft` · `sent` · `incomplete` ⚠️ · `screening` · `interview` · `test` ·
-`offer` · `rejected` · `withdrawn` · `stale`
+`offer` · `rejected` · `withdrawn` · `stale` · `skipped`
+
+`skipped` is a role the person looked at and decided **not** to pursue — with the reason in `notes`.
+It is not clutter: it is the memory that stops skill `01` from recommending the same company next
+week.
 
 `incomplete` is the one that matters most. A half-finished application on a profile-based ATS is
 not "not applied" — it is a started record sitting in the employer's system, and it usually expires
@@ -46,8 +50,9 @@ silently. Flag it every single time the tracker is read until it is resolved.
 - **Never apply twice to the same requisition.** Check here before every new application. Note that
   large consultancies post near-identical roles under different job IDs — those are different
   requisitions, and applying to both is fine. Same ID twice is not.
-- **Record why a role was dropped.** Six weeks later you will not remember whether you skipped a
-  company because the stack was wrong or because a recruiter told you something.
+- **Record why a role was dropped** — as a `skipped` row, not a thought. Six weeks later you will
+  not remember whether you skipped a company because the stack was wrong or because a recruiter told
+  you something, and neither will a sub-agent that never saw this conversation.
 
 ## Periodic review
 
