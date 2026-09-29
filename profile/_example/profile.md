@@ -28,6 +28,11 @@
 - **Do-not-use list:** *(none yet)*
 - **Profile-based platforms to keep current:** LinkedIn
 
+## Conflicts
+Postings from these companies are flagged, never recommended blindly — see `AGENTS.md` §5.
+- **Current employer:** Agência Norte — contract has a 12-month non-solicitation clause for clients
+- **Current clients:** cliente Y *(do not apply directly while at Agência Norte)*
+
 ## Seniority calibration log
 | Date | Source | What was learned |
 |---|---|---|

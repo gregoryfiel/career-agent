@@ -3,7 +3,8 @@
 **Goal:** perform well in one-way recorded screens — a bot sends a question, you record an answer
 against a clock, a human reviews it later.
 
-Common in the Brazilian market (DigAI is the platform CI&T and others use over WhatsApp) and
+Common in the Brazilian market (DigAI is one such platform, run by large consultancies over
+WhatsApp) and
 spreading elsewhere. Very few candidates prepare for the format specifically, which is the opening.
 
 ## Why this skill exists

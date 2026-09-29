@@ -28,6 +28,7 @@ text editor, and see the change in a diff.
                                   06 interview prep ──────┘
                                   07 audio prep
                                   08 salary research
+                                  09 application form
 ```
 
 ## A week in practice

@@ -13,7 +13,7 @@
 contra um banco de evidências travado, e devolvem a vaga exata no dia da entrevista.*
 
 [O que muda aqui](#o-que-muda-aqui) · [Instalação](#instalação) · [O ciclo](#o-ciclo) ·
-[As habilidades](#as-nove-habilidades) · [Privacidade](#privacidade)
+[As habilidades](#as-dez-habilidades) · [Privacidade](#privacidade)
 
 </div>
 
@@ -113,24 +113,26 @@ depende dele.
                                   06 preparo de entrevista┘
                                   07 preparo de áudio
                                   08 pesquisa salarial
+                                  09 formulário de candidatura
 ```
 
 A seta que mais importa é a que volta para o banco de evidências. Toda entrevista traz à tona
 alguma coisa que você tinha esquecido que fez.
 
-## As nove habilidades
+## As dez habilidades
 
 | # | Habilidade | O que faz |
 |---|---|---|
 | `00` | **onboarding** | Monta o banco de evidências a partir do seu CV, LinkedIn ou conversa guiada. Marca lacunas em vez de preencher. |
 | `01` | **job-radar** | Acha vagas abertas em portais e no LinkedIn, pontua aderência ao seu perfil, filtra pela sua faixa de senioridade. |
 | `02` | **ats-triage** | ⭐ Resolve o link da candidatura até o ATS **antes** do trabalho de CV. Sinaliza plataformas da sua lista de recusa. |
-| `03` | **tailored-cv** | Um agente rascunha, outro nasce limpo e critica com pesquisa da empresa, aí vem a verificação: evidência, páginas, camada de texto do PDF. |
+| `03` | **tailored-cv** | Um agente rascunha, outro nasce limpo e critica com pesquisa da empresa, aí vem a verificação: evidência no .docx/.pdf real, lint de tempo de experiência, páginas, camada de texto do PDF. |
 | `04` | **application-tracker** | Uma linha por candidatura, uma pasta por empresa — CV enviado, vaga arquivada, status, pretensão informada. |
 | `05` | **inbox-sweep** | Varre todas as caixas que você usa de verdade, porque as confirmações não caem todas no mesmo lugar. |
 | `06` | **interview-prep** | ⭐ Devolve a vaga arquivada. Monta preparo de RH e técnico, mapeia suas histórias, escreve as pontes honestas. |
 | `07` | **audio-interview** | ⭐ Transcreve gravações de treino localmente. Mede ritmo, vícios, primeira pessoa. Reconstrói em Contexto → Ação → Resultado. |
 | `08` | **salary-research** | ⭐ Dado de remuneração por empresa, conversão de regime, exposição cambial e o roteiro da negociação. |
+| `09` | **application-form** | ⭐ Lê o formulário de verdade, separa os campos que só você preenche, respeita cada limite de caracteres e mantém pretensão e anos de experiência coerentes com o CV. Quem clica em enviar é você. |
 
 ⭐ = não encontrado em nenhum projeto parecido. Cada um nasceu de uma falha específica.
 

@@ -36,6 +36,42 @@ jobs:
           MD
           python3 tools/verify_evidence.py --profile profile/_example --cv /tmp/clean.md
 
+      - name: Gate regression tests
+        run: python3 -m unittest tools/test_verify_evidence.py -v
+
+  cv-build:
+    name: CV build, lint and gate on the real .docx
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install
+        working-directory: templates/cv
+        run: npm ci
+
+      - name: Lint tests
+        working-directory: templates/cv
+        run: node --test lint.test.js
+
+      - name: Build the example CV (lint is fatal here)
+        working-directory: templates/cv
+        run: |
+          STRICT=1 PDF=0 node build.js
+          STRICT=1 PDF=0 ATS_SAFE=1 node build.js
+
+      - name: Gate reads the generated .docx and the data file
+        run: |
+          python3 tools/verify_evidence.py --profile profile/_example \
+            --cv output/Ana_Beatriz_Moraes/CV_Ana_Beatriz_Moraes.docx \
+            --cv output/Ana_Beatriz_Moraes/CV_Ana_Beatriz_Moraes_ATS_SAFE.docx \
+            --cv templates/cv/cv.example.js
+
   structure:
     name: repository structure
     runs-on: ubuntu-latest
@@ -46,12 +82,13 @@ jobs:
         run: |
           fail=0
           for f in AGENTS.md AGENTS.pt-BR.md CLAUDE.md README.md README.pt-BR.md LICENSE \
-                   tools/verify_evidence.py tools/check_pages.sh tools/transcribe_audio.py; do
+                   tools/verify_evidence.py tools/test_verify_evidence.py tools/check_pages.sh \
+                   tools/transcribe_audio.py templates/cv/build.js templates/cv/lint.js; do
             [ -f "$f" ] || { echo "::error::missing $f"; fail=1; }
           done
           for d in 00-onboarding 01-job-radar 02-ats-triage 03-tailored-cv \
                    04-application-tracker 05-inbox-sweep 06-interview-prep \
-                   07-audio-interview 08-salary-research; do
+                   07-audio-interview 08-salary-research 09-application-form; do
             [ -f "skills/$d/SKILL.md" ] || { echo "::error::missing skills/$d/SKILL.md"; fail=1; }
           done
           exit $fail
@@ -65,3 +102,14 @@ jobs:
             exit 1
           fi
           echo "✓ no personal profile data tracked"
+
+      - name: No generated CV committed
+        run: |
+          leaked=$(git ls-files | grep -E '(^|/)CV_[^/]*\.(docx|pdf)$|^templates/cv/cv_[^/]*\.js$|^output/' \
+                   | grep -v '^templates/cv/cv\.example\.js$' || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::a generated CV or a personal CV data file is tracked by git:"
+            echo "$leaked"
+            exit 1
+          fi
+          echo "✓ no generated CV tracked"

@@ -1,8 +1,15 @@
 /**
- * build.js — renders a CV data file to .docx.
+ * build.js — renders a CV data file to .docx (and .pdf, when LibreOffice is installed).
  *
  *   CV_DATA=./cv_acme.js node build.js            # styled (the house template)
  *   CV_DATA=./cv_acme.js ATS_SAFE=1 node build.js # ATS-safe: Arial, no colour, no borders
+ *
+ * Options (environment variables)
+ *   OUT_DIR=<dir>   where to write. Default: <repo>/output/<outputName>/ — gitignored, so a real
+ *                   CV never lands next to the template where `git add .` would pick it up.
+ *   PDF=0           skip the PDF. By default a PDF is written whenever `soffice` is found.
+ *   SOFFICE=<path>  LibreOffice binary, if it is not on PATH (common on Windows).
+ *   STRICT=1        exit non-zero when the lint finds a problem (see lint.js).
  *
  * ── Provenance ───────────────────────────────────────────────────────────────
  * The styled layout is not invented. It was recovered from the OOXML of CVs this
@@ -33,15 +40,29 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const {
   Document, Packer, Paragraph, TextRun, ExternalHyperlink,
   AlignmentType, BorderStyle, LevelFormat, convertInchesToTwip,
 } = require('docx');
+const { lintTenure } = require('./lint');
 
 const DATA = process.env.CV_DATA || './cv.example.js';
 const ATS = !!process.env.ATS_SAFE;
 const S = require(path.resolve(DATA));
 const L = S.labels || {};
+const REPO = path.resolve(__dirname, '..', '..');
+
+// ── Lint before building — an inconsistent CV should never reach a recruiter ──
+{
+  const warnings = lintTenure(S);
+  if (warnings.length) {
+    console.warn('\n⚠️  CV lint — tenure claims that the dated roles do not support:');
+    warnings.forEach((w) => console.warn(`   • ${w}`));
+    console.warn('   AGENTS.md §2.1: no rounding a number up.\n');
+    if (process.env.STRICT) process.exit(1);
+  }
+}
 
 // ── Design tokens (recovered) ────────────────────────────────────────────────
 const FONT = ATS ? 'Arial' : 'Calibri';
@@ -223,11 +244,44 @@ const doc = new Document({
 });
 
 const slug = (S.outputName || S.name || 'cv').replace(/\s+/g, '_');
-const out = `CV_${slug}${ATS ? '_ATS_SAFE' : ''}.docx`;
+const outDir = process.env.OUT_DIR
+  ? path.resolve(process.env.OUT_DIR)
+  : path.join(REPO, 'output', slug);
+fs.mkdirSync(outDir, { recursive: true });
+const out = path.join(outDir, `CV_${slug}${ATS ? '_ATS_SAFE' : ''}.docx`);
+const rel = (p) => path.relative(REPO, p) || '.';
+
+/** First LibreOffice binary that answers, or null. */
+function findSoffice() {
+  const candidates = [process.env.SOFFICE, 'soffice', 'libreoffice'].filter(Boolean);
+  for (const bin of candidates) {
+    try { execFileSync(bin, ['--version'], { stdio: 'ignore' }); return bin; } catch { /* next */ }
+  }
+  return null;
+}
 
 Packer.toBuffer(doc).then((buf) => {
   fs.writeFileSync(out, buf);
-  console.log(`✓ ${out}`);
-  console.log(`  verify: bash ../../tools/check_pages.sh ${out} 2`);
-  console.log('          python3 ../../tools/verify_evidence.py --cv <md> --profile ../../profile/<person>');
+  console.log(`✓ ${rel(out)}`);
+
+  let pdf = null;
+  if (process.env.PDF !== '0') {
+    const soffice = findSoffice();
+    if (soffice) {
+      try {
+        execFileSync(soffice, ['--headless', '--convert-to', 'pdf', '--outdir', outDir, out],
+          { stdio: 'ignore' });
+        pdf = out.replace(/\.docx$/, '.pdf');
+        console.log(`✓ ${rel(pdf)}`);
+      } catch (e) {
+        console.warn(`⚠️  PDF export failed (${e.message.split('\n')[0]}) — the .docx is fine.`);
+      }
+    } else {
+      console.log('ℹ  LibreOffice not found — PDF skipped. Set SOFFICE=<path> or export from Word.');
+    }
+  }
+
+  console.log('\n  next — both must pass before this CV is sent (skills/03, phase 4):');
+  console.log(`    python3 tools/verify_evidence.py --profile profile/<person> --cv ${rel(out)}`);
+  console.log(`    bash tools/check_pages.sh ${rel(pdf || out)} 2`);
 });
